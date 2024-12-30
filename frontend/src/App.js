@@ -115,21 +115,34 @@ function App() {
   };
 
   // 雷达图数据
-  const getChartData = (data) => ({
-    labels: ['年龄匹配', '共同兴趣', '沟通质量', '价值观契合'],
-    datasets: [{
-      label: '匹配度分析',
-      data: [
-        data.age_difference * 100,
-        data.common_interests * 100,
-        data.communication * 100,
-        data.values_alignment * 100
-      ],
-      backgroundColor: 'rgba(102, 126, 234, 0.2)',
-      borderColor: 'rgba(102, 126, 234, 1)',
-      borderWidth: 2,
-    }]
-  });
+  const getChartData = (formData) => {
+    // 默认数据
+    const defaultData = {
+      age_difference: 0,
+      common_interests: 0,
+      communication: 0,
+      values_alignment: 0
+    };
+
+    // 使用传入的数据或默认数据
+    const data = formData || defaultData;
+
+    return {
+      labels: ['年龄匹配', '共同兴趣', '沟通质量', '价值观契合'],
+      datasets: [{
+        label: '匹配度分析',
+        data: [
+          data.age_difference * 100,
+          data.common_interests * 100,
+          data.communication * 100,
+          data.values_alignment * 100
+        ],
+        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+        borderColor: 'rgba(102, 126, 234, 1)',
+        borderWidth: 2,
+      }]
+    };
+  };
 
   return (
     <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
@@ -233,12 +246,7 @@ function App() {
 
               <div className="chart-container">
                 <Radar 
-                  data={getChartData(result.inputs || {
-                    age_difference: result.age_difference || 0,
-                    common_interests: result.common_interests || 0,
-                    communication: result.communication || 0,
-                    values_alignment: result.values_alignment || 0
-                  })} 
+                  data={getChartData(result)} 
                   options={{
                     scales: {
                       r: {
@@ -248,12 +256,6 @@ function App() {
                           stepSize: 20
                         }
                       }
-                    },
-                    plugins: {
-                      legend: {
-                        display: true,
-                        position: 'top'
-                      }
                     }
                   }}
                 />
@@ -261,29 +263,31 @@ function App() {
               
               <div className="details">
                 <h3>详细分析</h3>
-                <div className="analysis-grid">
-                  <div className="analysis-item">
-                    <span className="analysis-label">年龄匹配</span>
-                    <p>{result.details.age_compatibility}</p>
+                {result.details && (
+                  <div className="analysis-grid">
+                    <div className="analysis-item">
+                      <span className="analysis-label">年龄匹配</span>
+                      <p>{result.details.age_compatibility}</p>
+                    </div>
+                    <div className="analysis-item">
+                      <span className="analysis-label">共同兴趣</span>
+                      <p>{result.details.interests}</p>
+                    </div>
+                    <div className="analysis-item">
+                      <span className="analysis-label">沟通质量</span>
+                      <p>{result.details.communication_quality}</p>
+                    </div>
+                    <div className="analysis-item">
+                      <span className="analysis-label">价值观</span>
+                      <p>{result.details.values}</p>
+                    </div>
                   </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">共同兴趣</span>
-                    <p>{result.details.interests}</p>
-                  </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">沟通质量</span>
-                    <p>{result.details.communication_quality}</p>
-                  </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">价值观</span>
-                    <p>{result.details.values}</p>
-                  </div>
-                </div>
+                )}
 
                 <div className="recommendations">
                   <h3>改进建议</h3>
                   <ul>
-                    {result.score < 75 && (
+                    {result.score < 75 && result.inputs && (
                       <>
                         {result.inputs.communication < 0.6 && (
                           <li>建议增加深入交流的机会，提升沟通质量</li>
